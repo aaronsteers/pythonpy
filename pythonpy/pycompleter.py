@@ -50,11 +50,10 @@ def complete_all(prefix, completion_args):
         if completion_args['x_arg']:
             x = str()
         if completion_args['l_arg']:
-            l = list()
+            l = []
         if completion_args['c_arg']:
             exec(completion_args['c_arg'].strip('"\'').replace("`", "'"))
-    context = locals()
-    context.update(globals())
+    context = locals() | globals()
     completer = rlcompleter.Completer(context)
     idx = 0
     options_set = set()
@@ -64,7 +63,7 @@ def complete_all(prefix, completion_args):
 
     module_completion, module_list = get_completerlib()
     try:
-        options = module_completion("import " + prefix) or []
+        options = module_completion(f"import {prefix}") or []
     except: #module_completion may throw exception (e.g. on 'import sqlalchemy_utils.')
         options = []
     if options:
@@ -198,8 +197,9 @@ def get_completerlib():
         for f in files:
             m = import_re.match(f)
             if m:
-                modules.append(m.group('name'))
+                modules.append(m['name'])
         return list(set(modules))
+
 
 
     def get_root_modules():
@@ -246,7 +246,8 @@ def get_completerlib():
         if only_modules:
             return inspect.ismodule(getattr(module, attr))
         else:
-            return not(attr[:2] == '__' and attr[-2:] == '__')
+            return attr[:2] != '__' or attr[-2:] != '__'
+
 
 
     def try_import(mod, only_modules=False):
@@ -309,9 +310,7 @@ def get_completerlib():
 
 
 def remove_trailing_paren(str_):
-    if str_.endswith('('):
-        return str_[:-1]
-    return str_
+    return str_[:-1] if str_.endswith('(') else str_
 
 
 def main():
@@ -324,14 +323,14 @@ def main():
     else:
         options = list(set(map(remove_trailing_paren, parse_string(input))))
 
-        if len(options) == 0:
+        if not options:
             return
 
         if len(current_list(input)) > 1 and max(map(len, options)) + 1 >= len(current_raw(input)):
             options.append(current_prefix(input))
 
         if len(options) <= 1:
-            options = options + [x + "'" for x in options]
+            options += [x + "'" for x in options]
         print(' '.join(options))
 
 
