@@ -23,10 +23,10 @@ try:
     if 'PYTHONPY_CONFIG' in os.environ:
         exec(open(os.environ['PYTHONPY_CONFIG']).read())
     else:
-        exec(open('%s/.pythonpy.py' % os.environ['HOME']).read())
+        exec(open(f"{os.environ['HOME']}/.pythonpy.py").read())
 except:
     pass
-        
+
 try:
     from . import __version__
 except (ImportError, ValueError, SystemError):
@@ -47,7 +47,7 @@ def import_matches(query, prefix=''):
         try:
             module = __import__(module_name)
             globals()[raw_module_name] = module
-            import_matches(query, prefix='%s.' % module_name)
+            import_matches(query, prefix=f'{module_name}.')
         except ImportError as e:
             pass
 
@@ -121,9 +121,7 @@ try:
             try:
                 return json.loads(str_.rstrip())
             except Exception as ex:
-                if args.ignore_exceptions:
-                    pass
-                else:
+                if not args.ignore_exceptions:
                     raise ex
         stdin = (loads(x) for x in sys.stdin)
     elif args.csv_delimiter:
